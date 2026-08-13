@@ -34,18 +34,22 @@ Ikuti langkah-langkah di bawah ini untuk menghidupkan *server* lokal Anda:
    ```bash
    npm install
    ```
-4. Hidupkan mesin *server* aplikasi:
+4. *(Opsional namun disarankan)* Lakukan injeksi data *dummy* awal (Seeding) agar pangkalan data langsung terisi dengan 1 admin dan 50 siswa untuk simulasi:
+   ```bash
+   npm run seed
+   ```
+5. Hidupkan mesin *server* aplikasi:
    ```bash
    node server.js
    ```
    *(Catatan: Anda juga bisa menggunakan `npm run dev` jika ingin server me-refresh dirinya secara otomatis saat Anda mengubah baris kode).*
-5. Buka peramban internet (*Browser*) Anda lalu akses URL berikut:
+6. Buka peramban internet (*Browser*) Anda lalu akses URL berikut:
    `http://localhost:3000`
 
 ### 🔑 Informasi Akses Masuk (*Login Dummy*)
-Sistem telah kami injeksikan dengan puluhan data simulasi untuk keperluan uji coba (*testing*):
-- **Role Admin** 
+Jika Anda telah menjalankan perintah `npm run seed`, sistem akan terisi dengan data simulasi berikut:
+- **Role Admin Utama** 
   - Username: `admin` | Password: `admin123`
-- **Role Siswa Simulasi** (Contoh untuk jurusan Akuntansi)
-  - Username: `siswaak1` | Password: `siswa123`
-  - *(Tersedia nomor `siswaak1` hingga `siswaak10`)*
+- **Role Siswa Simulasi** (50 Siswa terbagi di berbagai jurusan)
+  - Contoh Username: `budi0`, `siti1`, `dewi3`, hingga `zara49`
+  - Password Seragam: `siswa123`
