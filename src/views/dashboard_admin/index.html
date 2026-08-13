@@ -97,8 +97,7 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <div id="header-root"></div>
-            
+            <h2>Dashboard Statistik</h2>
             <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 1.1rem;">Ringkasan sistem pembayaran SPP dan pendaftaran siswa.</p>
 
             <div class="widget-grid">
@@ -171,11 +170,9 @@
     </div>
 
     <script src="/js/components/sidebar.js"></script>
-    <script src="/js/components/header.js"></script>
     <script>
         // Render Sidebar for Admin
         SidebarComponent.render('admin', '/dashboard_admin/index.html');
-        HeaderComponent.render('Dashboard Statistik');
         
         // Fetch Stats
         fetch('/api/statistics', { cache: 'no-store' })
