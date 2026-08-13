@@ -20,29 +20,30 @@
                 <!-- Endpoint matches our PaymentController route -->
                 <form action="/api/payment/submit" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label for="nama_siswa">Nama Lengkap</label>
-                        <input type="text" id="nama_siswa" name="nama_siswa" class="form-control" required placeholder="Masukkan nama Anda">
+                        <label>Nama Lengkap</label>
+                        <input type="text" name="nama_siswa" id="form-nama" class="form-control" readonly required style="background-color: var(--background);">
                     </div>
 
-                    <div style="display: flex; gap: 1rem;">
-                        <div class="form-group" style="flex: 1;">
-                            <label for="kelas">Kelas</label>
-                            <input type="text" id="kelas" name="kelas" class="form-control" required placeholder="Contoh: XII">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div class="form-group">
+                            <label>Kelas</label>
+                            <input type="text" name="kelas" id="form-kelas" class="form-control" readonly required style="background-color: var(--background);">
                         </div>
-                        <div class="form-group" style="flex: 1;">
-                            <label for="jurusan">Jurusan</label>
-                            <input type="text" id="jurusan" name="jurusan" class="form-control" required placeholder="Contoh: RPL">
+                        <div class="form-group">
+                            <label>Jurusan</label>
+                            <input type="text" name="jurusan" id="form-jurusan" class="form-control" readonly required style="background-color: var(--background);">
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="nisn">NISN</label>
-                        <input type="text" id="nisn" name="nisn" class="form-control" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="no_spp">Nomor SPP (Referensi)</label>
-                        <input type="text" id="no_spp" name="no_spp" class="form-control" required>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div class="form-group">
+                            <label>NISN</label>
+                            <input type="text" name="nisn" id="form-nisn" class="form-control" readonly required style="background-color: var(--background);">
+                        </div>
+                        <div class="form-group">
+                            <label for="no_spp">Nomor SPP (Referensi)</label>
+                            <input type="text" id="no_spp" name="no_spp" class="form-control" required>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -70,6 +71,19 @@
     <script>
         // Render Sidebar for Siswa
         SidebarComponent.render('siswa', '/dashboard_siswa/form_pembayaran.html');
+
+        // Fetch profile data to auto-fill the form
+        fetch('/api/users/profile')
+            .then(res => res.json())
+            .then(data => {
+                if(data && !data.error) {
+                    document.getElementById('form-nama').value = data.nama_siswa || '';
+                    document.getElementById('form-kelas').value = data.kelas || '';
+                    document.getElementById('form-jurusan').value = data.jurusan || '';
+                    document.getElementById('form-nisn').value = data.nisn || '';
+                }
+            })
+            .catch(err => console.error('Gagal mengambil profil:', err));
     </script>
 </body>
 </html>

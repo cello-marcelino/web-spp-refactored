@@ -65,6 +65,13 @@ const server = http.createServer((req, res) => {
         });
     }
 
+    // Profile endpoint (All Roles)
+    if (pathname === '/api/users/profile' && req.method === 'GET') {
+        return SessionManager.requireRole()(req, res, () => {
+            UserController.getProfile(req, res);
+        });
+    }
+
     // CRUD Admin (Only Master Admin)
     if (pathname.startsWith('/api/users/admin')) {
         return SessionManager.requireRole(['admin'])(req, res, () => {

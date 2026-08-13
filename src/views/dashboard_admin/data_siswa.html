@@ -100,6 +100,9 @@
         } else if (urlParams.get('error')) {
             alert('Error: ' + urlParams.get('error'));
             window.history.replaceState(null, '', window.location.pathname);
+        } else if (urlParams.get('action') === 'add') {
+            setTimeout(openAddModal, 300);
+            window.history.replaceState(null, '', window.location.pathname);
         }
 
         let siswaData = [];

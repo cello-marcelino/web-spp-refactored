@@ -11,6 +11,15 @@ class UserRepo {
         });
     }
 
+    static getSiswaById(id) {
+        return new Promise((resolve, reject) => {
+            db.get(`SELECT id_siswa as id, nama_siswa, kelas, jurusan, no_spp, nisn, username, role FROM tb_siswa WHERE id_siswa = ?`, [id], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+    }
+
     static createSiswa(data) {
         return new Promise((resolve, reject) => {
             const sql = `INSERT INTO tb_siswa (nama_siswa, kelas, jurusan, no_spp, nisn, username, password, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;

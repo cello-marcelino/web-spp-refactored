@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Siswa - SPP Pay</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-root" style="display: flex; height: 100vh;"></div>
+
+        <main class="main-content">
+            <h2>Profil Saya</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Informasi data diri Anda.</p>
+
+            <div class="card" style="max-width: 600px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border); font-weight: bold; width: 30%;">Nama Lengkap</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border);" id="prof-nama">-</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border); font-weight: bold;">NISN</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border);" id="prof-nisn">-</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border); font-weight: bold;">Kelas</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border);" id="prof-kelas">-</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border); font-weight: bold;">Jurusan</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border);" id="prof-jurusan">-</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border); font-weight: bold;">Nomor SPP</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border);" id="prof-nospp">-</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border); font-weight: bold;">Username Login</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border);" id="prof-username">-</td>
+                    </tr>
+                </table>
+                <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-muted);">
+                    * Jika ada kesalahan data, harap melapor ke admin Tata Usaha sekolah.
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/components/sidebar.js"></script>
+    <script>
+        SidebarComponent.render('siswa', '/dashboard_siswa/profil.html');
+
+        fetch('/api/users/profile')
+            .then(res => res.json())
+            .then(data => {
+                if(data && !data.error) {
+                    document.getElementById('prof-nama').innerText = data.nama_siswa;
+                    document.getElementById('prof-nisn').innerText = data.nisn;
+                    document.getElementById('prof-kelas').innerText = data.kelas;
+                    document.getElementById('prof-jurusan').innerText = data.jurusan;
+                    document.getElementById('prof-nospp').innerText = data.no_spp;
+                    document.getElementById('prof-username').innerText = data.username;
+                }
+            })
+            .catch(err => console.error('Gagal mengambil profil:', err));
+    </script>
+</body>
+</html>

@@ -19,6 +19,32 @@ class UserController {
         });
     }
 
+    // ================= PROFILE =================
+    static async getProfile(req, res) {
+        try {
+            const session = req.session;
+            let data = null;
+
+            if (session.role === 'siswa') {
+                const UserRepo = require('../repositories/UserRepo');
+                data = await UserRepo.getSiswaById(session.id);
+            } else {
+                data = {
+                    id: session.id,
+                    username: session.username,
+                    nama_lengkap: session.nama_lengkap,
+                    role: session.role
+                };
+            }
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(data));
+        } catch (error) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: error.message }));
+        }
+    }
+
     // ================= SISWA =================
     static async listSiswa(req, res) {
         try {

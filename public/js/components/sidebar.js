@@ -12,6 +12,7 @@ class SidebarComponent {
 
         if (role === 'siswa') {
             links = [
+                { path: '/dashboard_siswa/profil.html', label: 'Profil Saya' },
                 { path: '/dashboard_siswa/histori.html', label: 'Riwayat Pembayaran' },
                 { path: '/dashboard_siswa/form_pembayaran.html', label: 'Bayar SPP' }
             ];
@@ -19,7 +20,8 @@ class SidebarComponent {
             links = [
                 { path: '/dashboard_admin/index.html', label: 'Dashboard Statistik' },
                 { path: '/dashboard_admin/histori.html', label: 'Validasi Pembayaran' },
-                { path: '/dashboard_admin/data_siswa.html', label: 'Data Siswa' }
+                { path: '/dashboard_admin/data_siswa.html', label: 'Data Siswa' },
+                { path: '/dashboard_admin/data_siswa.html?action=add', label: 'Tambah Siswa' }
             ];
             
             // Only master admin can manage other admins, but we'll show link and handle authorization in backend
