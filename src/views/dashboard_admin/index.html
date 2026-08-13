@@ -227,17 +227,21 @@
                 animateCount('val-pending', data.total_pending);
                 animateCount('val-rejected', data.total_rejected || 0);
 
-                // Progress Bar Ratio
-                document.getElementById('lbl-month').innerText = data.current_month || '-';
-                document.getElementById('lbl-paid').innerText = data.paid_this_month || 0;
-                document.getElementById('lbl-unpaid').innerText = data.unpaid_this_month || 0;
-                
-                const total = (data.paid_this_month || 0) + (data.unpaid_this_month || 0);
-                let percentage = 0;
-                if(total > 0) percentage = Math.round(((data.paid_this_month || 0) / total) * 100);
-                setTimeout(() => {
+                // Progress Bar Ratio Update Function
+                const updateRatio = (monthLabel, paidCount) => {
+                    const unpaidCount = Math.max(0, data.total_siswa - paidCount);
+                    document.getElementById('lbl-month').innerText = monthLabel;
+                    document.getElementById('lbl-paid').innerText = paidCount;
+                    document.getElementById('lbl-unpaid').innerText = unpaidCount;
+                    
+                    const total = paidCount + unpaidCount;
+                    let percentage = 0;
+                    if(total > 0) percentage = Math.round((paidCount / total) * 100);
                     document.getElementById('progress-paid').style.width = percentage + '%';
-                }, 300);
+                };
+
+                // Initialize with current month
+                updateRatio(data.current_month || '-', data.paid_this_month || 0);
 
                 // Render Chart
                 const ctx = document.getElementById('paymentChart').getContext('2d');
@@ -295,6 +299,16 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        onClick: (event, elements, chart) => {
+                            if (elements && elements.length > 0) {
+                                const index = elements[0].index;
+                                const month = chart.data.labels[index];
+                                const monthData = data.chart_data.find(item => item.bulan_spp === month);
+                                if (monthData) {
+                                    updateRatio(month, monthData.success_count);
+                                }
+                            }
+                        },
                         plugins: {
                             legend: {
                                 position: 'top',
