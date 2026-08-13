@@ -9,33 +9,83 @@
     <style>
         .widget-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
         .widget {
-            background-color: var(--surface);
+            background-color: white;
             padding: 1.5rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-            text-align: center;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: default;
+        }
+        .widget:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        .widget-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .widget-icon svg { width: 32px; height: 32px; }
+        .icon-blue { background-color: #eff6ff; color: #3b82f6; }
+        .icon-orange { background-color: #fff7ed; color: #f97316; }
+        .icon-green { background-color: #f0fdf4; color: #22c55e; }
+        
+        .widget-content {
+            display: flex;
+            flex-direction: column;
         }
         .widget h3 {
             color: var(--text-muted);
-            font-size: 1rem;
-            font-weight: 500;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
             margin-bottom: 0.5rem;
         }
         .widget .value {
             font-size: 2rem;
-            font-weight: bold;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1;
+        }
+
+        .chart-container {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+            position: relative;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
             color: var(--text-main);
         }
-        .chart-container {
-            background-color: var(--surface);
-            padding: 1.5rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
+        .chart-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
         }
     </style>
 </head>
@@ -46,45 +96,97 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <h2>Dashboard Statistik</h2>
-            <p style="color: var(--text-muted); margin-bottom: 2rem;">Ringkasan sistem pembayaran SPP.</p>
+            <div id="header-root"></div>
+            
+            <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 1.1rem;">Ringkasan sistem pembayaran SPP dan pendaftaran siswa.</p>
 
             <div class="widget-grid">
+                <!-- Widget: Total Siswa -->
                 <div class="widget">
-                    <h3>Total Siswa Terdaftar</h3>
-                    <div class="value" id="val-siswa">-</div>
+                    <div class="widget-icon icon-blue">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="widget-content">
+                        <h3>Total Siswa</h3>
+                        <div class="value" id="val-siswa">-</div>
+                    </div>
                 </div>
+                
+                <!-- Widget: Pending -->
                 <div class="widget">
-                    <h3>Menunggu Validasi (Pending)</h3>
-                    <div class="value" id="val-pending" style="color: var(--warning);">-</div>
+                    <div class="widget-icon icon-orange">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="widget-content">
+                        <h3>Menunggu Validasi</h3>
+                        <div class="value" id="val-pending">-</div>
+                    </div>
                 </div>
+
+                <!-- Widget: Success -->
                 <div class="widget">
-                    <h3>Pembayaran Berhasil</h3>
-                    <div class="value" id="val-success" style="color: var(--success);">-</div>
+                    <div class="widget-icon icon-green">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="widget-content">
+                        <h3>Pembayaran Sukses</h3>
+                        <div class="value" id="val-success">-</div>
+                    </div>
                 </div>
             </div>
 
             <div class="chart-container">
-                <h3 style="margin-bottom: 1rem; color: var(--text-muted);">Rasio Pembayaran per Bulan</h3>
-                <canvas id="paymentChart" width="400" height="150"></canvas>
+                <div class="chart-header">
+                    <div>
+                        <div class="chart-title">Analitik Pembayaran</div>
+                        <div class="chart-subtitle">Rasio konversi pembayaran bulanan yang divalidasi vs tertunda</div>
+                    </div>
+                </div>
+                <!-- Relative wrapper for Chart.js responsiveness -->
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="paymentChart"></canvas>
+                </div>
             </div>
         </main>
     </div>
 
     <script src="/js/components/sidebar.js"></script>
+    <script src="/js/components/header.js"></script>
     <script>
         // Render Sidebar for Admin
         SidebarComponent.render('admin', '/dashboard_admin/index.html');
+        HeaderComponent.render('Dashboard Statistik');
         
         // Fetch Stats
         fetch('/api/statistics')
             .then(res => res.json())
             .then(data => {
-                document.getElementById('val-siswa').innerText = data.total_siswa;
-                document.getElementById('val-pending').innerText = data.total_pending;
-                document.getElementById('val-success').innerText = data.total_success;
+                // Animate counting up for a premium feel
+                const animateCount = (id, endVal) => {
+                    const el = document.getElementById(id);
+                    let curr = 0;
+                    const step = Math.max(1, Math.floor(endVal / 30));
+                    const timer = setInterval(() => {
+                        curr += step;
+                        if (curr >= endVal) {
+                            curr = endVal;
+                            clearInterval(timer);
+                        }
+                        el.innerText = curr.toLocaleString('id-ID');
+                    }, 30);
+                };
 
-                // Render Chart
+                animateCount('val-siswa', data.total_siswa);
+                animateCount('val-pending', data.total_pending);
+                animateCount('val-success', data.total_success);
+
+                // Render Premium Chart
                 const ctx = document.getElementById('paymentChart').getContext('2d');
                 
                 // data.chart_data looks like: [{ bulan_spp: '2026-08', success_count: 5, pending_count: 2 }, ...]
@@ -98,21 +200,75 @@
                         labels: labels,
                         datasets: [
                             {
-                                label: 'Tervalidasi (Success)',
+                                label: ' Sukses (Tervalidasi)',
                                 data: successData,
-                                backgroundColor: '#10b981'
+                                backgroundColor: '#10b981',
+                                borderRadius: 6,
+                                borderSkipped: false
                             },
                             {
-                                label: 'Menunggu (Pending)',
+                                label: ' Pending (Menunggu)',
                                 data: pendingData,
-                                backgroundColor: '#f59e0b'
+                                backgroundColor: '#fb923c',
+                                borderRadius: 6,
+                                borderSkipped: false
                             }
                         ]
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                align: 'end',
+                                labels: {
+                                    usePointStyle: true,
+                                    boxWidth: 8,
+                                    font: { family: "system-ui, -apple-system, sans-serif", size: 13, weight: '500' },
+                                    color: '#4b5563'
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                                titleFont: { size: 13, family: "system-ui" },
+                                bodyFont: { size: 14, family: "system-ui" },
+                                padding: 12,
+                                cornerRadius: 8,
+                                displayColors: true,
+                                usePointStyle: true
+                            }
+                        },
                         scales: {
-                            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                            y: {
+                                beginAtZero: true,
+                                ticks: { 
+                                    stepSize: 1, 
+                                    color: '#9ca3af',
+                                    font: { family: "system-ui" }
+                                },
+                                grid: {
+                                    color: '#f3f4f6',
+                                    drawBorder: false,
+                                    borderDash: [5, 5]
+                                },
+                                border: { display: false }
+                            },
+                            x: {
+                                ticks: { 
+                                    color: '#6b7280',
+                                    font: { family: "system-ui", weight: '500' }
+                                },
+                                grid: {
+                                    display: false,
+                                    drawBorder: false
+                                },
+                                border: { display: false }
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index',
                         }
                     }
                 });
