@@ -7,7 +7,7 @@ const SessionManager = require('./src/utils/SessionManager');
 // Require database to initialize it on startup
 require('./src/config/database');
 
-const PORT = 5500;
+const PORT = 3000;
 
 const server = http.createServer((req, res) => {
     const urlObj = new URL(req.url, `http://${req.headers.host}`);
