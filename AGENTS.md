@@ -30,6 +30,9 @@ Proyek ini menggunakan arsitektur berlapis (Layered) murni berbasis Native JavaS
 └── package.json         # Konfigurasi Node & dependencies (sqlite3, bcrypt)
 ```
 
+### Konsep Database Baru (Dinamic Data)
+- **tb_tarif**: Tabel khusus (Master Data) untuk menyimpan daftar `jurusan` dan `nominal` (Biaya SPP per bulan). Berelasi (`One-to-Many`) dengan `tb_siswa` sehingga setiap siswa mengikuti tarif sesuai jurusannya.
+
 ## 3. Standar Frontend (Vanilla Component)
 Karena kita tidak menggunakan framework frontend, komponen yang berulang (seperti Sidebar atau Navbar) **DILARANG** di-copy-paste ke setiap file HTML. 
 - Buat file `public/js/components/sidebar.js`.
