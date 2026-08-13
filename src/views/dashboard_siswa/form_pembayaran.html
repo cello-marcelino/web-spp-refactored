@@ -102,29 +102,69 @@
             })
             .catch(err => console.error('Gagal mengambil profil:', err));
 
-        // Generate Tagihan Bulanan Logic
-        const renderTagihan = () => {
+        // Generate Tagihan Bulanan Logic with History Integration
+        const renderTagihan = async () => {
             const listEl = document.getElementById('tagihan-list');
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            const monthsStr = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-            const monthsName = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            listEl.innerHTML = '<span style="color:var(--text-muted)">Memuat data tagihan...</span>';
             
-            let html = '';
-            // Just display up to current month or max 8 months for demo
-            const maxMonth = Math.min(11, today.getMonth() + 1);
-            
-            for(let i = maxMonth; i >= Math.max(0, maxMonth - 5); i--) {
-                const val = `${currentYear}-${monthsStr[i]}`;
-                html += `
-                    <button type="button" onclick="selectBulan('${val}')" 
-                            style="padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: white; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s;">
-                        <span style="font-weight: 500;">Tagihan ${monthsName[i]} ${currentYear}</span>
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
-                    </button>
-                `;
+            try {
+                // Fetch payment history
+                const res = await fetch('/api/payment/history');
+                const historyData = await res.json();
+                const history = Array.isArray(historyData) ? historyData : [];
+
+                const today = new Date();
+                const currentYear = today.getFullYear();
+                const monthsStr = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+                const monthsName = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                
+                let html = '';
+                // Render full 12 months
+                for(let i = 0; i < 12; i++) {
+                    const val = `${currentYear}-${monthsStr[i]}`;
+                    
+                    const records = history.filter(h => h.bulan_spp === val);
+                    let statusLabel = 'Belum Dibayar';
+                    let statusColor = 'var(--text-muted)';
+                    let badgeColor = 'var(--background)';
+                    let isClickable = true;
+                    
+                    if (records.length > 0) {
+                        if (records.some(r => r.status === 'success')) {
+                            statusLabel = 'Sudah Dibayar';
+                            statusColor = '#15803d'; // dark green
+                            badgeColor = '#dcfce7'; // light green
+                            isClickable = false;
+                        } else if (records.some(r => r.status === 'pending')) {
+                            statusLabel = 'Menunggu Konfirmasi';
+                            statusColor = '#b45309'; // dark amber
+                            badgeColor = '#fef3c7'; // light amber
+                            isClickable = false;
+                        } else if (records.every(r => r.status === 'rejected')) {
+                            statusLabel = 'Ditolak (Bayar Ulang)';
+                            statusColor = '#b91c1c'; // dark red
+                            badgeColor = '#fee2e2'; // light red
+                        }
+                    }
+
+                    const clickAction = isClickable ? `onclick="selectBulan('${val}')"` : '';
+                    const cursorStyle = isClickable ? 'cursor: pointer;' : 'cursor: not-allowed; opacity: 0.8;';
+                    
+                    html += `
+                        <button type="button" ${clickAction} 
+                                style="padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: white; text-align: left; ${cursorStyle} display: flex; justify-content: space-between; align-items: center; transition: all 0.2s;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <span style="font-weight: 500;">Tagihan ${monthsName[i]} ${currentYear}</span>
+                                <span style="font-size: 0.75rem; color: ${statusColor}; background: ${badgeColor}; padding: 2px 6px; border-radius: 4px; width: fit-content; font-weight: bold;">${statusLabel}</span>
+                            </div>
+                            ${isClickable ? '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>' : '<svg width="18" height="18" fill="none" stroke="var(--text-muted)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>'}
+                        </button>
+                    `;
+                }
+                listEl.innerHTML = html;
+            } catch(e) {
+                listEl.innerHTML = '<span style="color:var(--danger)">Gagal memuat data tagihan.</span>';
             }
-            listEl.innerHTML = html;
         };
 
         window.selectBulan = (bulan) => {
