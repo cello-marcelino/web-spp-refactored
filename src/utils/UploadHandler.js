@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 
-const UPLOAD_DIR = path.resolve(__dirname, '../../../public/uploads');
+const UPLOAD_DIR = path.resolve(__dirname, '../../public/uploads');
 
 // Ensure upload directory exists
 if (!fs.existsSync(UPLOAD_DIR)) {
