@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Jurusan & Tarif - Admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white; padding: 2rem; border-radius: var(--radius-lg);
+            width: 100%; max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-root"></div>
+        <main class="main-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h2>Data Jurusan & Tarif SPP</h2>
+                    <p style="color: var(--text-muted);">Kelola daftar jurusan dan besaran tarif SPP bulanannya.</p>
+                </div>
+                <button onclick="openModal('add')" class="btn btn-primary">+ Tambah Jurusan</button>
+            </div>
+
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama Jurusan</th>
+                            <th>Tarif SPP (Per Bulan)</th>
+                            <th style="width: 150px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <tr><td colspan="4" style="text-align: center;">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Form -->
+    <div class="modal" id="formModal">
+        <div class="modal-content">
+            <h3 id="modalTitle" style="margin-bottom: 1.5rem; color: var(--primary);">Tambah Jurusan</h3>
+            <form id="jurusanForm" method="POST" action="/api/tarif/create">
+                <input type="hidden" name="old_jurusan" id="old_jurusan">
+                
+                <div class="form-group">
+                    <label>Nama Jurusan</label>
+                    <input type="text" name="jurusan" id="jurusan" class="form-control" required placeholder="Contoh: Akuntansi">
+                </div>
+                
+                <div class="form-group">
+                    <label>Tarif SPP (Rp)</label>
+                    <input type="number" name="nominal" id="nominal" class="form-control" required min="10000" placeholder="500000">
+                </div>
+                
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="button" onclick="closeModal()" class="btn" style="background: #e5e7eb; flex: 1;">Batal</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/components/sidebar.js"></script>
+    <script>
+        SidebarComponent.render('admin', '/dashboard_admin/data_jurusan.html');
+
+        // Check messages
+        const params = new URLSearchParams(window.location.search);
+        if(params.get('msg')) {
+            alert('Aksi berhasil dilakukan!');
+            window.history.replaceState(null, '', window.location.pathname);
+        } else if(params.get('error')) {
+            alert('Error: ' + params.get('error'));
+            window.history.replaceState(null, '', window.location.pathname);
+        }
+
+        // Fetch Data
+        fetch('/api/tarif')
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('table-body');
+                if(!data || data.error) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Gagal memuat.</td></tr>`;
+                    return;
+                }
+                if(data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Belum ada data jurusan.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = data.map((item, idx) => `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td style="font-weight: 600;">${item.jurusan}</td>
+                        <td>Rp ${item.nominal.toLocaleString('id-ID')}</td>
+                        <td>
+                            <div style="display:flex; gap: 0.5rem;">
+                                <button onclick="openModal('edit', '${item.jurusan}', ${item.nominal})" class="btn" style="background:#eab308; color:white; padding: 0.25rem 0.5rem; font-size: 0.85rem;">Edit</button>
+                                <button onclick="confirmDelete('${item.jurusan}')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.85rem;">Hapus</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            });
+
+        // Modal Logic
+        const formModal = document.getElementById('formModal');
+        const jurusanForm = document.getElementById('jurusanForm');
+        
+        function openModal(mode, jurusan = '', nominal = '') {
+            if(mode === 'add') {
+                document.getElementById('modalTitle').innerText = 'Tambah Jurusan';
+                jurusanForm.action = '/api/tarif/create';
+                document.getElementById('old_jurusan').value = '';
+                document.getElementById('jurusan').value = '';
+                document.getElementById('nominal').value = '';
+            } else {
+                document.getElementById('modalTitle').innerText = 'Edit Jurusan & Tarif';
+                jurusanForm.action = '/api/tarif/update';
+                document.getElementById('old_jurusan').value = jurusan;
+                document.getElementById('jurusan').value = jurusan;
+                document.getElementById('nominal').value = nominal;
+            }
+            formModal.classList.add('active');
+        }
+
+        function closeModal() {
+            formModal.classList.remove('active');
+        }
+
+        function confirmDelete(jurusan) {
+            if(confirm(`Apakah Anda yakin ingin menghapus jurusan ${jurusan}? Siswa di jurusan ini mungkin akan terdampak.`)) {
+                window.location.href = `/api/tarif/delete?jurusan=${encodeURIComponent(jurusan)}`;
+            }
+        }
+    </script>
+</body>
+</html>

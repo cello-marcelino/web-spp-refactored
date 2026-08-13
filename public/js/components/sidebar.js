@@ -24,6 +24,7 @@ class SidebarComponent {
             ];
             
             if (role === 'admin') {
+                links.push({ path: '/dashboard_admin/data_jurusan.html', label: 'Data Jurusan & Tarif' });
                 links.push({ path: '/dashboard_admin/data_admin.html', label: 'Data Admin' });
             }
         }

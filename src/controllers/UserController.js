@@ -156,6 +156,59 @@ class UserController {
             res.end(JSON.stringify({ error: error.message }));
         }
     }
+
+    // Jurusan & Tarif API Endpoints
+    static async getAllTarif(req, res) {
+        try {
+            const UserRepo = require('../repositories/UserRepo');
+            const data = await UserRepo.getAllTarif();
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(data));
+        } catch (error) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: error.message }));
+        }
+    }
+
+    static async createTarif(req, res) {
+        try {
+            const data = await UserController.parseForm(req);
+            const UserRepo = require('../repositories/UserRepo');
+            await UserRepo.addTarif(data.jurusan, parseInt(data.nominal, 10));
+            res.writeHead(302, { 'Location': '/dashboard_admin/data_jurusan.html?msg=created' });
+            res.end();
+        } catch (error) {
+            res.writeHead(302, { 'Location': `/dashboard_admin/data_jurusan.html?error=${encodeURIComponent(error.message)}` });
+            res.end();
+        }
+    }
+
+    static async updateTarif(req, res) {
+        try {
+            const data = await UserController.parseForm(req);
+            const UserRepo = require('../repositories/UserRepo');
+            await UserRepo.editTarif(data.old_jurusan, data.jurusan, parseInt(data.nominal, 10));
+            res.writeHead(302, { 'Location': '/dashboard_admin/data_jurusan.html?msg=updated' });
+            res.end();
+        } catch (error) {
+            res.writeHead(302, { 'Location': `/dashboard_admin/data_jurusan.html?error=${encodeURIComponent(error.message)}` });
+            res.end();
+        }
+    }
+
+    static async deleteTarif(req, res) {
+        try {
+            const urlObj = new URL(req.url, `http://${req.headers.host}`);
+            const jurusan = urlObj.searchParams.get('jurusan');
+            const UserRepo = require('../repositories/UserRepo');
+            await UserRepo.removeTarif(jurusan);
+            res.writeHead(302, { 'Location': '/dashboard_admin/data_jurusan.html?msg=deleted' });
+            res.end();
+        } catch (error) {
+            res.writeHead(302, { 'Location': `/dashboard_admin/data_jurusan.html?error=${encodeURIComponent(error.message)}` });
+            res.end();
+        }
+    }
 }
 
 module.exports = UserController;

@@ -128,6 +128,53 @@ class UserRepo {
             });
         });
     }
+
+    /**
+     * Jurusan & Tarif Management
+     */
+    static getAllTarif() {
+        return new Promise((resolve, reject) => {
+            db.all(`SELECT * FROM tb_tarif ORDER BY jurusan ASC`, [], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+    }
+
+    static addTarif(jurusan, nominal) {
+        return new Promise((resolve, reject) => {
+            db.run(`INSERT INTO tb_tarif (jurusan, nominal) VALUES (?, ?)`, [jurusan, nominal], function(err) {
+                if (err) reject(err);
+                else resolve(this.lastID);
+            });
+        });
+    }
+
+    static editTarif(oldJurusan, newJurusan, nominal) {
+        return new Promise((resolve, reject) => {
+            // Must update both tb_tarif and also cascade to tb_siswa? 
+            // In a real app we'd cascade. For now, let's just update tb_tarif.
+            db.serialize(() => {
+                db.run(`UPDATE tb_tarif SET jurusan = ?, nominal = ? WHERE jurusan = ?`, [newJurusan, nominal, oldJurusan], (err) => {
+                    if (err) return reject(err);
+                    // Also update tb_siswa to match new jurusan name if changed
+                    if (oldJurusan !== newJurusan) {
+                        db.run(`UPDATE tb_siswa SET jurusan = ? WHERE jurusan = ?`, [newJurusan, oldJurusan]);
+                    }
+                    resolve(true);
+                });
+            });
+        });
+    }
+
+    static removeTarif(jurusan) {
+        return new Promise((resolve, reject) => {
+            db.run(`DELETE FROM tb_tarif WHERE jurusan = ?`, [jurusan], function(err) {
+                if (err) reject(err);
+                else resolve(this.changes);
+            });
+        });
+    }
 }
 
 module.exports = UserRepo;

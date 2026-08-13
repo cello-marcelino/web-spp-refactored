@@ -61,6 +61,20 @@ const server = http.createServer((req, res) => {
         });
     }
 
+    // CRUD Tarif/Jurusan (Admin Only)
+    if (pathname === '/api/tarif' && req.method === 'GET') {
+        return SessionManager.requireRole(['admin'])(req, res, () => UserController.getAllTarif(req, res));
+    }
+    if (pathname === '/api/tarif/create' && req.method === 'POST') {
+        return SessionManager.requireRole(['admin'])(req, res, () => UserController.createTarif(req, res));
+    }
+    if (pathname === '/api/tarif/update' && req.method === 'POST') {
+        return SessionManager.requireRole(['admin'])(req, res, () => UserController.updateTarif(req, res));
+    }
+    if (pathname === '/api/tarif/delete' && req.method === 'GET') {
+        return SessionManager.requireRole(['admin'])(req, res, () => UserController.deleteTarif(req, res));
+    }
+
     // CRUD Siswa (Admin & Petugas)
     if (pathname.startsWith('/api/users/siswa')) {
         return SessionManager.requireRole(['admin', 'petugas'])(req, res, () => {
