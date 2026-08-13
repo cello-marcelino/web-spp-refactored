@@ -22,27 +22,32 @@ class SidebarComponent {
                 { path: '/dashboard_admin/data_siswa.html', label: 'Data Siswa' }
             ];
             
-            // Only master admin can manage other admins
             if (role === 'admin') {
                 links.push({ path: '/dashboard_admin/data_admin.html', label: 'Data Admin' });
             }
         }
 
-        const navHtml = `
-            <div class="sidebar">
-                <div class="brand">
-                    <span>SPP | PAY</span>
+        const navHtml = links.map(link => `
+            <a href="${link.path}" class="nav-link ${activePath.includes(link.path) ? 'active' : ''}">
+                ${link.label}
+            </a>
+        `).join('');
+
+        const template = `
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    SPP Pay
                 </div>
-                <div class="navigation">
-                    <span class="nav-title">Menu Utama</span>
-                    <div class="navigation-menu">
-                        ${links.map(link => `<a href="${link.path}" class="${activePath.includes(link.path) ? 'active' : ''}">${link.label}</a>`).join('')}
-                    </div>
-                </div>
-            </div>
+                <nav>
+                    ${navHtml}
+                </nav>
+            </aside>
         `;
 
-        root.innerHTML = navHtml;
+        root.innerHTML = template;
+        
+        // Remove the hardcoded inline style that messes up layout
+        root.removeAttribute("style");
 
         // Inject Topbar automatically to main-content
         const mainContent = document.querySelector('.main-content');
