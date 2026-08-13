@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Siswa - SPP Pay</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .modal {
+            display: none; position: fixed; z-index: 100; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: var(--surface); margin: 5% auto; padding: 2rem;
+            border-radius: var(--radius-lg); width: 80%; max-width: 500px;
+        }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-root" style="display: flex; height: 100vh;"></div>
+
+        <main class="main-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2>Kelola Data Siswa</h2>
+                <button class="btn btn-primary" onclick="openAddModal()">Tambah Siswa</button>
+            </div>
+
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama Siswa</th>
+                            <th>NISN</th>
+                            <th>Kelas & Jurusan</th>
+                            <th>No SPP</th>
+                            <th>Username</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <tr><td colspan="6" style="text-align: center;">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Form Siswa -->
+    <div id="siswaModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3 id="modalTitle" style="margin-bottom: 1.5rem;">Tambah Siswa</h3>
+            <form id="siswaForm" action="/api/users/siswa/create" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="id" id="form-id">
+                <div class="form-group">
+                    <label>Nama Siswa</label>
+                    <input type="text" name="nama_siswa" id="form-nama" class="form-control" required>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex:1;">
+                        <label>Kelas</label>
+                        <input type="text" name="kelas" id="form-kelas" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Jurusan</label>
+                        <input type="text" name="jurusan" id="form-jurusan" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>NISN</label>
+                    <input type="text" name="nisn" id="form-nisn" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>No SPP</label>
+                    <input type="text" name="no_spp" id="form-no_spp" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" id="form-username" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Password <small id="pw-hint">(Isi jika ingin diubah)</small></label>
+                    <input type="password" name="password" id="form-password" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Simpan</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/components/sidebar.js"></script>
+    <script>
+        SidebarComponent.render('admin', '/dashboard_admin/data_siswa.html');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('msg')) {
+            alert('Aksi berhasil dilakukan.');
+            window.history.replaceState(null, '', window.location.pathname);
+        } else if (urlParams.get('error')) {
+            alert('Error: ' + urlParams.get('error'));
+            window.history.replaceState(null, '', window.location.pathname);
+        }
+
+        let siswaData = [];
+
+        function loadData() {
+            fetch('/api/users/siswa')
+                .then(res => res.json())
+                .then(data => {
+                    siswaData = data;
+                    const tbody = document.getElementById('table-body');
+                    if (data.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Belum ada data siswa.</td></tr>`;
+                        return;
+                    }
+                    tbody.innerHTML = data.map(item => `
+                        <tr>
+                            <td>${item.nama_siswa}</td>
+                            <td>${item.nisn}</td>
+                            <td>${item.kelas} ${item.jurusan}</td>
+                            <td>${item.no_spp}</td>
+                            <td>${item.username}</td>
+                            <td>
+                                <button class="btn btn-success" style="padding: 0.3rem 0.6rem;" onclick="openEditModal(${item.id})">Edit</button>
+                                <a href="/api/users/siswa/delete?id=${item.id}" class="btn btn-danger" style="padding: 0.3rem 0.6rem;" onclick="return confirm('Hapus siswa ini?')">Hapus</a>
+                            </td>
+                        </tr>
+                    `).join('');
+                });
+        }
+        
+        loadData();
+
+        function openAddModal() {
+            document.getElementById('modalTitle').innerText = 'Tambah Siswa';
+            document.getElementById('siswaForm').action = '/api/users/siswa/create';
+            document.getElementById('siswaForm').reset();
+            document.getElementById('form-password').required = true;
+            document.getElementById('pw-hint').style.display = 'none';
+            document.getElementById('siswaModal').style.display = 'block';
+        }
+
+        function openEditModal(id) {
+            const siswa = siswaData.find(s => s.id === id);
+            if(!siswa) return;
+            document.getElementById('modalTitle').innerText = 'Edit Siswa';
+            document.getElementById('siswaForm').action = '/api/users/siswa/update';
+            document.getElementById('form-id').value = siswa.id;
+            document.getElementById('form-nama').value = siswa.nama_siswa;
+            document.getElementById('form-kelas').value = siswa.kelas;
+            document.getElementById('form-jurusan').value = siswa.jurusan;
+            document.getElementById('form-nisn').value = siswa.nisn;
+            document.getElementById('form-no_spp').value = siswa.no_spp;
+            document.getElementById('form-username').value = siswa.username;
+            document.getElementById('form-password').required = false;
+            document.getElementById('pw-hint').style.display = 'inline';
+            document.getElementById('siswaModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('siswaModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -18,8 +18,14 @@ class SidebarComponent {
         } else if (role === 'admin' || role === 'petugas') {
             links = [
                 { path: '/dashboard_admin/index.html', label: 'Dashboard Statistik' },
-                { path: '/dashboard_admin/histori.html', label: 'Validasi Pembayaran' }
+                { path: '/dashboard_admin/histori.html', label: 'Validasi Pembayaran' },
+                { path: '/dashboard_admin/data_siswa.html', label: 'Data Siswa' }
             ];
+            
+            // Only master admin can manage other admins, but we'll show link and handle authorization in backend
+            if (role === 'admin') {
+                links.push({ path: '/dashboard_admin/data_admin.html', label: 'Data Admin' });
+            }
         }
 
         const navHtml = links.map(link => `

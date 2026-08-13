@@ -52,6 +52,29 @@ const server = http.createServer((req, res) => {
         });
     }
 
+    // ----- USER MANAGEMENT ROUTES -----
+    const UserController = require('./src/controllers/UserController');
+    
+    // CRUD Siswa (Admin & Petugas)
+    if (pathname.startsWith('/api/users/siswa')) {
+        return SessionManager.requireRole(['admin', 'petugas'])(req, res, () => {
+            if (pathname === '/api/users/siswa' && req.method === 'GET') return UserController.listSiswa(req, res);
+            if (pathname === '/api/users/siswa/create' && req.method === 'POST') return UserController.createSiswa(req, res);
+            if (pathname === '/api/users/siswa/update' && req.method === 'POST') return UserController.updateSiswa(req, res);
+            if (pathname === '/api/users/siswa/delete' && req.method === 'GET') return UserController.deleteSiswa(req, res);
+        });
+    }
+
+    // CRUD Admin (Only Master Admin)
+    if (pathname.startsWith('/api/users/admin')) {
+        return SessionManager.requireRole(['admin'])(req, res, () => {
+            if (pathname === '/api/users/admin' && req.method === 'GET') return UserController.listAdmin(req, res);
+            if (pathname === '/api/users/admin/create' && req.method === 'POST') return UserController.createAdmin(req, res);
+            if (pathname === '/api/users/admin/update' && req.method === 'POST') return UserController.updateAdmin(req, res);
+            if (pathname === '/api/users/admin/delete' && req.method === 'GET') return UserController.deleteAdmin(req, res);
+        });
+    }
+
     // ----- STATIC FILE SERVING -----
     let staticPath;
     if (pathname.endsWith('.html') || pathname === '/') {

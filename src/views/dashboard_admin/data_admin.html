@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Admin - SPP Pay</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .modal {
+            display: none; position: fixed; z-index: 100; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: var(--surface); margin: 5% auto; padding: 2rem;
+            border-radius: var(--radius-lg); width: 80%; max-width: 500px;
+        }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-root" style="display: flex; height: 100vh;"></div>
+
+        <main class="main-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2>Kelola Data Admin & Petugas</h2>
+                <button class="btn btn-primary" onclick="openAddModal()">Tambah Admin/Petugas</button>
+            </div>
+
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama</th>
+                            <th>Email</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <tr><td colspan="5" style="text-align: center;">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Form Admin -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3 id="modalTitle" style="margin-bottom: 1.5rem;">Tambah Admin/Petugas</h3>
+            <form id="adminForm" action="/api/users/admin/create" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="id" id="form-id">
+                <div class="form-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" name="nama" id="form-nama" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" id="form-email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" id="form-username" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select name="role" id="form-role" class="form-control" required>
+                        <option value="admin">Master Admin</option>
+                        <option value="petugas">Petugas</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Password <small id="pw-hint">(Isi jika ingin diubah)</small></label>
+                    <input type="password" name="password" id="form-password" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Simpan</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/components/sidebar.js"></script>
+    <script>
+        SidebarComponent.render('admin', '/dashboard_admin/data_admin.html');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('msg')) {
+            alert('Aksi berhasil dilakukan.');
+            window.history.replaceState(null, '', window.location.pathname);
+        } else if (urlParams.get('error')) {
+            alert('Error: ' + urlParams.get('error'));
+            window.history.replaceState(null, '', window.location.pathname);
+        }
+
+        let adminData = [];
+
+        function loadData() {
+            fetch('/api/users/admin')
+                .then(res => {
+                    if(!res.ok) throw new Error("Unauthorized");
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.error) throw new Error(data.error);
+                    adminData = data;
+                    const tbody = document.getElementById('table-body');
+                    if (data.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Belum ada data admin.</td></tr>`;
+                        return;
+                    }
+                    tbody.innerHTML = data.map(item => `
+                        <tr>
+                            <td>${item.nama}</td>
+                            <td>${item.email}</td>
+                            <td>${item.username}</td>
+                            <td><span class="badge ${item.role === 'admin' ? 'badge-success' : 'badge-pending'}">${item.role}</span></td>
+                            <td>
+                                <button class="btn btn-success" style="padding: 0.3rem 0.6rem;" onclick="openEditModal(${item.id})">Edit</button>
+                                <a href="/api/users/admin/delete?id=${item.id}" class="btn btn-danger" style="padding: 0.3rem 0.6rem;" onclick="return confirm('Hapus admin ini?')">Hapus</a>
+                            </td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(err => {
+                    document.getElementById('table-body').innerHTML = `<tr><td colspan="5" style="color:var(--danger); text-align:center;">Anda tidak memiliki akses ke halaman ini. (Hanya Master Admin)</td></tr>`;
+                });
+        }
+        
+        loadData();
+
+        function openAddModal() {
+            document.getElementById('modalTitle').innerText = 'Tambah Admin/Petugas';
+            document.getElementById('adminForm').action = '/api/users/admin/create';
+            document.getElementById('adminForm').reset();
+            document.getElementById('form-password').required = true;
+            document.getElementById('pw-hint').style.display = 'none';
+            document.getElementById('adminModal').style.display = 'block';
+        }
+
+        function openEditModal(id) {
+            const admin = adminData.find(s => s.id === id);
+            if(!admin) return;
+            document.getElementById('modalTitle').innerText = 'Edit Admin/Petugas';
+            document.getElementById('adminForm').action = '/api/users/admin/update';
+            document.getElementById('form-id').value = admin.id;
+            document.getElementById('form-nama').value = admin.nama;
+            document.getElementById('form-email').value = admin.email;
+            document.getElementById('form-username').value = admin.username;
+            document.getElementById('form-role').value = admin.role;
+            document.getElementById('form-password').required = false;
+            document.getElementById('pw-hint').style.display = 'inline';
+            document.getElementById('adminModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('adminModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
