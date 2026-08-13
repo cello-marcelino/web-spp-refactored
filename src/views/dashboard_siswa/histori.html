@@ -24,6 +24,7 @@
                             <th>Bulan SPP</th>
                             <th>Nominal</th>
                             <th>Status</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="history-table-body">
@@ -57,7 +58,7 @@
                 }
                 
                 if (data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Belum ada riwayat pembayaran.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Belum ada riwayat pembayaran.</td></tr>`;
                     return;
                 }
 
@@ -66,12 +67,15 @@
                         <td>${item.tgl_bayar}</td>
                         <td>${item.bulan_spp}</td>
                         <td>Rp ${item.nominal.toLocaleString('id-ID')}</td>
-                        <td><span class="badge badge-${item.status === 'success' ? 'success' : (item.status === 'rejected' ? 'rejected' : 'pending')}">${item.status}</span></td>
+                        <td><span class="badge badge-${item.status === 'success' ? 'success' : (item.status === 'rejected' ? 'rejected' : 'pending')}">${String(item.status).toUpperCase()}</span></td>
+                        <td>
+                            ${item.status === 'rejected' ? `<a href="/dashboard_siswa/form_pembayaran.html?bulan=${item.bulan_spp}" class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.85rem; text-decoration: none;">Bayar Ulang</a>` : '-'}
+                        </td>
                     </tr>
                 `).join('');
             })
             .catch(err => {
-                document.getElementById('history-table-body').innerHTML = `<tr><td colspan="4">Gagal memuat data.</td></tr>`;
+                document.getElementById('history-table-body').innerHTML = `<tr><td colspan="5">Gagal memuat data.</td></tr>`;
             });
     </script>
 </body>
