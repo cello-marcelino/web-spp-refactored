@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Admin - SPP Pay</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-root" style="display: flex; height: 100vh;"></div>
+
+        <main class="main-content">
+            <h2>Profil Administrator</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Informasi identitas admin pengelola sistem.</p>
+
+            <div class="card" style="max-width: 600px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); font-weight: 600; width: 30%;">Nama Lengkap</td>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--border);" id="prof-nama">-</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); font-weight: 600;">Username Login</td>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--border);" id="prof-username">-</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); font-weight: 600;">Role Hak Akses</td>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--border);">
+                            <span class="badge badge-success" id="prof-role">-</span>
+                        </td>
+                    </tr>
+                </table>
+                <p style="margin-top: 1.5rem; font-size: 0.875rem; color: var(--text-muted);">
+                    * Gunakan kewenangan *admin* dengan bijak dalam memvalidasi pembayaran SPP.
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/components/sidebar.js"></script>
+    <script>
+        SidebarComponent.render('admin', '/dashboard_admin/profil.html');
+
+        fetch('/api/users/profile')
+            .then(res => res.json())
+            .then(data => {
+                if(data && !data.error) {
+                    document.getElementById('prof-nama').innerText = data.nama_lengkap || data.nama_siswa; // depends if session uses nama_lengkap
+                    document.getElementById('prof-username').innerText = data.username;
+                    document.getElementById('prof-role').innerText = String(data.role).toUpperCase();
+                }
+            })
+            .catch(err => console.error('Gagal mengambil profil:', err));
+    </script>
+</body>
+</html>

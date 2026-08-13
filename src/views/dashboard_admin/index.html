@@ -324,6 +324,10 @@
                                             label += formatRupiah(context.parsed.y);
                                         } else {
                                             label += context.parsed.y + ' Transaksi';
+                                            if (context.dataset.label.includes('Sukses')) {
+                                                const ratio = Math.round((context.parsed.y / data.total_siswa) * 100);
+                                                label += ` (${ratio}% Rasio Bayar)`;
+                                            }
                                         }
                                         return label;
                                     }
