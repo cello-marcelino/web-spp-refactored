@@ -31,8 +31,15 @@
 - [x] Integrasi ke `server.js`:
   - Tambahkan routing HTTP native untuk menghubungkan URL endpoint ke `PaymentController`.
 
-## 6. Testing & Verifikasi
+## 6. Authentication & User Layer
+- [x] Buat `src/repositories/AuthRepo.js`: Query untuk mengecek *username* di tabel `tb_siswa` dan `tb_admin`.
+- [x] Buat `src/services/AuthService.js`: Implementasi `bcrypt.compare()` dan pembuatan *session*.
+- [x] Buat `src/controllers/AuthController.js`: Handler untuk *login* dan *logout*.
+- [x] Buat `src/views/login.html`: Tampilan antarmuka formulir *login*.
+- [x] Integrasikan *route* login dan proteksi halaman ke dalam `server.js`.
+
+## 7. Testing & Verifikasi
 - [ ] Lakukan *Manual Testing* untuk upload gambar valid (berhasil masuk DB dan folder `/public/uploads/`).
 - [ ] Lakukan *Manual Testing* untuk upload gambar melebih 2MB atau ekstensi tidak valid (harus error aman).
-- [ ] Lakukan uji coba konfirmasi/tolak (Update DB status) sebagai admin.
-- [ ] Uji coba proteksi session (akses endpoint tanpa hak akses).
+- [ ] Uji coba login (Siswa & Admin) dan cek proteksi session.
+- [ ] Uji coba konfirmasi/tolak (Update DB status) sebagai admin.

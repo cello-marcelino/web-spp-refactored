@@ -15,6 +15,14 @@ const server = http.createServer((req, res) => {
 
     // ----- API ROUTES -----
     
+    // Auth Routes
+    if (pathname === '/api/auth/login' && req.method === 'POST') {
+        return require('./src/controllers/AuthController').login(req, res);
+    }
+    if (pathname === '/logout') {
+        return require('./src/controllers/AuthController').logout(req, res);
+    }
+    
     // POST /api/payment/submit - Siswa
     if (pathname === '/api/payment/submit' && req.method === 'POST') {
         return SessionManager.requireRole(['siswa'])(req, res, () => {
@@ -33,7 +41,27 @@ const server = http.createServer((req, res) => {
     // ----- STATIC FILE SERVING -----
     let staticPath;
     if (pathname.endsWith('.html') || pathname === '/') {
-        let viewFile = pathname === '/' ? 'index.html' : pathname;
+        let viewFile = pathname === '/' ? 'login.html' : pathname;
+        
+        // Protect dashboard routes
+        if (viewFile.startsWith('/dashboard')) {
+            const session = SessionManager.getSession(req);
+            if (!session) {
+                res.writeHead(302, { 'Location': '/login.html' });
+                return res.end();
+            }
+            
+            // Check roles
+            if (viewFile.includes('dashboard_admin') && !['admin', 'petugas'].includes(session.role)) {
+                res.writeHead(302, { 'Location': '/dashboard_siswa/histori.html' });
+                return res.end();
+            }
+            if (viewFile.includes('dashboard_siswa') && session.role !== 'siswa') {
+                res.writeHead(302, { 'Location': '/dashboard_admin/histori.html' });
+                return res.end();
+            }
+        }
+        
         staticPath = path.join(__dirname, 'src', 'views', viewFile);
     } else {
         staticPath = path.join(__dirname, 'public', pathname);
