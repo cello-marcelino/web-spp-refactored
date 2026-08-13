@@ -31,8 +31,13 @@ const server = http.createServer((req, res) => {
     }
 
     // ----- STATIC FILE SERVING -----
-    // A simple static file server for public/ folder
-    let staticPath = path.join(__dirname, 'public', pathname === '/' ? 'index.html' : pathname);
+    let staticPath;
+    if (pathname.endsWith('.html') || pathname === '/') {
+        let viewFile = pathname === '/' ? 'index.html' : pathname;
+        staticPath = path.join(__dirname, 'src', 'views', viewFile);
+    } else {
+        staticPath = path.join(__dirname, 'public', pathname);
+    }
     
     fs.stat(staticPath, (err, stats) => {
         if (err || !stats.isFile()) {

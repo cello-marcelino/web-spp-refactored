@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riwayat Pembayaran - Siswa</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Placeholder -->
+        <div id="sidebar-root" style="display: flex; height: 100vh;"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <h2>Riwayat Pembayaran</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Daftar transaksi pembayaran SPP Anda.</p>
+
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Bulan SPP</th>
+                            <th>Nominal</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <!-- Data will be populated via JS in real app, but for now we mock it to show layout -->
+                        <tr>
+                            <td>2026-08-01</td>
+                            <td>Juli 2026</td>
+                            <td>Rp 500.000</td>
+                            <td><span class="badge badge-success">Success</span></td>
+                        </tr>
+                        <tr>
+                            <td>2026-08-10</td>
+                            <td>Agustus 2026</td>
+                            <td>Rp 500.000</td>
+                            <td><span class="badge badge-pending">Pending</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/components/sidebar.js"></script>
+    <script>
+        // Render Sidebar for Siswa
+        SidebarComponent.render('siswa', '/dashboard_siswa/histori.html');
+        
+        // Cek URL params for alert
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('msg') === 'success') {
+            alert('Pembayaran berhasil disubmit. Menunggu konfirmasi admin.');
+            // Hapus param agar tidak alert terus saat di refresh
+            window.history.replaceState(null, '', window.location.pathname);
+        }
+    </script>
+</body>
+</html>
