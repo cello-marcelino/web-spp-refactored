@@ -94,42 +94,58 @@ class PaymentRepo {
      */
     static getDashboardStats() {
         return new Promise((resolve, reject) => {
+            const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
             const stats = {
                 total_siswa: 0,
                 total_pending: 0,
                 total_success: 0,
                 total_rejected: 0,
+                total_revenue: 0,
+                paid_this_month: 0,
+                unpaid_this_month: 0,
+                current_month: currentMonth,
                 chart_data: []
             };
 
             // Get total siswa
-            db.get(`SELECT COUNT(id_siswa) as count FROM tb_siswa`, [], (err, row) => {
+            db.get(`SELECT COUNT(id_siswa) as count FROM tb_siswa WHERE role = 'siswa'`, [], (err, row) => {
                 if (err) return reject(err);
                 stats.total_siswa = row ? row.count : 0;
 
-                // Get summary of payments
-                db.all(`SELECT status, COUNT(id_pembayaran) as count FROM pembayaran GROUP BY status`, [], (err, rows) => {
+                // Get summary of payments and total revenue
+                db.all(`SELECT status, COUNT(id_pembayaran) as count, SUM(nominal) as revenue FROM pembayaran GROUP BY status`, [], (err, rows) => {
                     if (err) return reject(err);
                     rows.forEach(r => {
                         if (r.status === 'pending') stats.total_pending = r.count;
-                        if (r.status === 'success') stats.total_success = r.count;
+                        if (r.status === 'success') {
+                            stats.total_success = r.count;
+                            stats.total_revenue = r.revenue || 0;
+                        }
                         if (r.status === 'rejected') stats.total_rejected = r.count;
                     });
 
-                    // Get chart data: Ratio of Validated vs Pending vs Rejected per month
-                    db.all(`
-                        SELECT bulan_spp, 
-                               SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as success_count,
-                               SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
-                               SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected_count
-                        FROM pembayaran 
-                        GROUP BY bulan_spp
-                        ORDER BY bulan_spp DESC
-                        LIMIT 6
-                    `, [], (err, chartRows) => {
+                    // Get ratio of paid vs unpaid this month
+                    db.get(`SELECT COUNT(DISTINCT nisn) as paid FROM pembayaran WHERE status = 'success' AND bulan_spp = ?`, [currentMonth], (err, rowPaid) => {
                         if (err) return reject(err);
-                        stats.chart_data = chartRows;
-                        resolve(stats);
+                        stats.paid_this_month = rowPaid ? rowPaid.paid : 0;
+                        stats.unpaid_this_month = Math.max(0, stats.total_siswa - stats.paid_this_month);
+
+                        // Get chart data: Ratio of Validated vs Pending vs Rejected per month + Revenue line
+                        db.all(`
+                            SELECT bulan_spp, 
+                                   SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as success_count,
+                                   SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
+                                   SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected_count,
+                                   SUM(CASE WHEN status = 'success' THEN nominal ELSE 0 END) as revenue
+                            FROM pembayaran 
+                            GROUP BY bulan_spp
+                            ORDER BY bulan_spp DESC
+                            LIMIT 6
+                        `, [], (err, chartRows) => {
+                            if (err) return reject(err);
+                            stats.chart_data = chartRows;
+                            resolve(stats);
+                        });
                     });
                 });
             });

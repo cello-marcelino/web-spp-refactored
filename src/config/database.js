@@ -64,6 +64,15 @@ function initializeDatabase() {
                 role TEXT NOT NULL
             )
         `);
+
+        db.run(`
+            CREATE TABLE IF NOT EXISTS tb_tarif (
+                jurusan TEXT PRIMARY KEY,
+                nominal INTEGER NOT NULL
+            )
+        `, () => {
+            db.run(`INSERT OR IGNORE INTO tb_tarif (jurusan, nominal) VALUES ('RPL', 500000), ('TKJ', 450000), ('Multimedia', 480000)`);
+        });
     });
 }
 
