@@ -72,6 +72,66 @@ class PaymentRepo {
             });
         });
     }
+
+    /**
+     * Retrieves payments for a specific student using NISN.
+     */
+    static getPaymentsByNisn(nisn) {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT * FROM pembayaran WHERE nisn = ? ORDER BY id_pembayaran DESC`;
+            db.all(sql, [nisn], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+
+    /**
+     * Retrieves statistics for admin dashboard
+     */
+    static getDashboardStats() {
+        return new Promise((resolve, reject) => {
+            const stats = {
+                total_siswa: 0,
+                total_pending: 0,
+                total_success: 0,
+                chart_data: []
+            };
+
+            // Get total siswa
+            db.get(`SELECT COUNT(id_siswa) as count FROM tb_siswa`, [], (err, row) => {
+                if (err) return reject(err);
+                stats.total_siswa = row ? row.count : 0;
+
+                // Get summary of payments
+                db.all(`SELECT status, COUNT(id_pembayaran) as count FROM pembayaran GROUP BY status`, [], (err, rows) => {
+                    if (err) return reject(err);
+                    rows.forEach(r => {
+                        if (r.status === 'pending') stats.total_pending = r.count;
+                        if (r.status === 'success') stats.total_success = r.count;
+                    });
+
+                    // Get chart data: Ratio of Validated vs Pending per month
+                    db.all(`
+                        SELECT bulan_spp, 
+                               SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as success_count,
+                               SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count
+                        FROM pembayaran 
+                        GROUP BY bulan_spp
+                        ORDER BY bulan_spp DESC
+                        LIMIT 6
+                    `, [], (err, chartRows) => {
+                        if (err) return reject(err);
+                        stats.chart_data = chartRows;
+                        resolve(stats);
+                    });
+                });
+            });
+        });
+    }
 }
 
 module.exports = PaymentRepo;

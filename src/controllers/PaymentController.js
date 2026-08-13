@@ -18,12 +18,13 @@ class PaymentController {
             }
 
             try {
-                // Ensure array fields are parsed as single values
+                const session = req.session;
+                // Force using the logged-in student's exact Name and NISN
                 const paymentData = {
-                    nama_siswa: Array.isArray(fields.nama_siswa) ? fields.nama_siswa[0] : fields.nama_siswa,
+                    nama_siswa: session.nama_lengkap,
                     kelas: Array.isArray(fields.kelas) ? fields.kelas[0] : fields.kelas,
                     jurusan: Array.isArray(fields.jurusan) ? fields.jurusan[0] : fields.jurusan,
-                    nisn: Array.isArray(fields.nisn) ? fields.nisn[0] : fields.nisn,
+                    nisn: session.nisn, 
                     no_spp: Array.isArray(fields.no_spp) ? fields.no_spp[0] : fields.no_spp,
                     tgl_bayar: Array.isArray(fields.tgl_bayar) ? fields.tgl_bayar[0] : fields.tgl_bayar,
                     bulan_spp: Array.isArray(fields.bulan_spp) ? fields.bulan_spp[0] : fields.bulan_spp,
@@ -65,6 +66,41 @@ class PaymentController {
             // Redirect back to admin history page
             res.writeHead(302, { 'Location': '/dashboard_admin/histori.html?msg=updated' });
             res.end();
+        } catch (error) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: error.message }));
+        }
+    }
+    /**
+     * Handle GET request for history data (JSON).
+     */
+    static async getHistory(req, res) {
+        try {
+            const session = req.session; // Attached by middleware
+            let data = [];
+
+            if (session.role === 'siswa') {
+                data = await PaymentService.getSiswaHistory(session.nisn);
+            } else if (session.role === 'admin' || session.role === 'petugas') {
+                data = await PaymentService.getAdminHistory();
+            }
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(data));
+        } catch (error) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: error.message }));
+        }
+    }
+
+    /**
+     * Handle GET request for dashboard statistics (Admin only)
+     */
+    static async getStatistics(req, res) {
+        try {
+            const stats = await require('../repositories/PaymentRepo').getDashboardStats();
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(stats));
         } catch (error) {
             res.writeHead(400, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: error.message }));

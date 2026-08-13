@@ -17,7 +17,7 @@ class AuthRepo {
                 }
 
                 // If not found in admin, check siswa
-                const sqlSiswa = `SELECT id_siswa as id, nama_siswa as nama_lengkap, username, password, role FROM tb_siswa WHERE username = ?`;
+                const sqlSiswa = `SELECT id_siswa as id, nama_siswa as nama_lengkap, username, password, role, nisn FROM tb_siswa WHERE username = ?`;
                 db.get(sqlSiswa, [username], (err, siswaRow) => {
                     if (err) return reject(err);
                     if (siswaRow) {

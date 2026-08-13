@@ -29,22 +29,7 @@
                         </tr>
                     </thead>
                     <tbody id="admin-table-body">
-                        <!-- Data mockup -->
-                        <tr>
-                            <td>
-                                <strong>Budi Santoso</strong><br>
-                                <small style="color: var(--text-muted)">XII RPL - 123456789</small>
-                            </td>
-                            <td>Agustus 2026</td>
-                            <td>Rp 500.000</td>
-                            <td><a href="#" style="color: var(--primary)">Lihat Bukti</a></td>
-                            <td><span class="badge badge-pending">Pending</span></td>
-                            <td>
-                                <!-- Admin action buttons hitting the GET endpoints -->
-                                <a href="/api/payment/status?action=konfirmasi&id=1" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Terima</a>
-                                <a href="/api/payment/status?action=tolak&id=1" class="btn btn-danger" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Tolak</a>
-                            </td>
-                        </tr>
+                        <tr><td colspan="6" style="text-align: center;">Memuat data...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -61,6 +46,44 @@
             alert('Status pembayaran berhasil diupdate.');
             window.history.replaceState(null, '', window.location.pathname);
         }
+
+        // Fetch Data from API
+        fetch('/api/payment/history')
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('admin-table-body');
+                if (data.error) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--danger)">Error: ${data.error}</td></tr>`;
+                    return;
+                }
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Belum ada riwayat pembayaran.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = data.map(item => `
+                    <tr>
+                        <td>
+                            <strong>${item.nama_siswa}</strong><br>
+                            <small style="color: var(--text-muted)">${item.kelas} ${item.jurusan} - ${item.nisn}</small>
+                        </td>
+                        <td>${item.bulan_spp}</td>
+                        <td>Rp ${item.nominal.toLocaleString('id-ID')}</td>
+                        <td><a href="/uploads/${item.receipt_file}" target="_blank" style="color: var(--primary)">Lihat Bukti</a></td>
+                        <td><span class="badge badge-${item.status === 'success' ? 'success' : (item.status === 'rejected' ? 'rejected' : 'pending')}">${item.status}</span></td>
+                        <td>
+                            ${item.status === 'pending' ? `
+                                <a href="/api/payment/status?action=konfirmasi&id=${item.id_pembayaran}" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Terima</a>
+                                <a href="/api/payment/status?action=tolak&id=${item.id_pembayaran}" class="btn btn-danger" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Tolak</a>
+                            ` : '-'}
+                        </td>
+                    </tr>
+                `).join('');
+            })
+            .catch(err => {
+                document.getElementById('admin-table-body').innerHTML = `<tr><td colspan="6">Gagal memuat data.</td></tr>`;
+            });
     </script>
 </body>
 </html>

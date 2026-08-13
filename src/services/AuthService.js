@@ -29,7 +29,8 @@ class AuthService {
                 id: user.id,
                 username: user.username,
                 role: user.role,
-                nama_lengkap: user.nama_lengkap
+                nama_lengkap: user.nama_lengkap,
+                nisn: user.nisn // Undefined for admin, which is fine
             };
 
             SessionManager.createSession(res, userData);

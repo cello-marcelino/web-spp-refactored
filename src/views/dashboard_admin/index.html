@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Statistik - Admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .widget-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .widget {
+            background-color: var(--surface);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+        }
+        .widget h3 {
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .widget .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--text-main);
+        }
+        .chart-container {
+            background-color: var(--surface);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Placeholder -->
+        <div id="sidebar-root" style="display: flex; height: 100vh;"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <h2>Dashboard Statistik</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Ringkasan sistem pembayaran SPP.</p>
+
+            <div class="widget-grid">
+                <div class="widget">
+                    <h3>Total Siswa Terdaftar</h3>
+                    <div class="value" id="val-siswa">-</div>
+                </div>
+                <div class="widget">
+                    <h3>Menunggu Validasi (Pending)</h3>
+                    <div class="value" id="val-pending" style="color: var(--warning);">-</div>
+                </div>
+                <div class="widget">
+                    <h3>Pembayaran Berhasil</h3>
+                    <div class="value" id="val-success" style="color: var(--success);">-</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 style="margin-bottom: 1rem; color: var(--text-muted);">Rasio Pembayaran per Bulan</h3>
+                <canvas id="paymentChart" width="400" height="150"></canvas>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/components/sidebar.js"></script>
+    <script>
+        // Render Sidebar for Admin
+        SidebarComponent.render('admin', '/dashboard_admin/index.html');
+        
+        // Fetch Stats
+        fetch('/api/statistics')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('val-siswa').innerText = data.total_siswa;
+                document.getElementById('val-pending').innerText = data.total_pending;
+                document.getElementById('val-success').innerText = data.total_success;
+
+                // Render Chart
+                const ctx = document.getElementById('paymentChart').getContext('2d');
+                
+                // data.chart_data looks like: [{ bulan_spp: '2026-08', success_count: 5, pending_count: 2 }, ...]
+                const labels = data.chart_data.map(item => item.bulan_spp).reverse();
+                const successData = data.chart_data.map(item => item.success_count).reverse();
+                const pendingData = data.chart_data.map(item => item.pending_count).reverse();
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Tervalidasi (Success)',
+                                data: successData,
+                                backgroundColor: '#10b981'
+                            },
+                            {
+                                label: 'Menunggu (Pending)',
+                                data: pendingData,
+                                backgroundColor: '#f59e0b'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                        }
+                    }
+                });
+            })
+            .catch(err => {
+                console.error("Gagal mengambil statistik:", err);
+            });
+    </script>
+</body>
+</html>

@@ -67,6 +67,20 @@ class PaymentService {
             throw new Error(error.message || 'Gagal mengubah status pembayaran.');
         }
     }
+    /**
+     * Get history for admin
+     */
+    static async getAdminHistory() {
+        return await PaymentRepo.getAllPayments();
+    }
+
+    /**
+     * Get history for siswa
+     */
+    static async getSiswaHistory(nisn) {
+        if (!nisn) throw new Error("NISN tidak valid.");
+        return await PaymentRepo.getPaymentsByNisn(nisn);
+    }
 }
 
 module.exports = PaymentService;

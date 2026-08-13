@@ -7,7 +7,7 @@ const SessionManager = require('./src/utils/SessionManager');
 // Require database to initialize it on startup
 require('./src/config/database');
 
-const PORT = 3000;
+const PORT = 5500;
 
 const server = http.createServer((req, res) => {
     const urlObj = new URL(req.url, `http://${req.headers.host}`);
@@ -35,6 +35,20 @@ const server = http.createServer((req, res) => {
     if (pathname === '/api/payment/status' && req.method === 'GET') {
         return SessionManager.requireRole(['admin', 'petugas'])(req, res, () => {
             PaymentController.updatePaymentStatus(req, res);
+        });
+    }
+
+    // GET /api/payment/history - All Roles
+    if (pathname === '/api/payment/history' && req.method === 'GET') {
+        return SessionManager.requireRole()(req, res, () => {
+            PaymentController.getHistory(req, res);
+        });
+    }
+
+    // GET /api/statistics - Admin / Petugas
+    if (pathname === '/api/statistics' && req.method === 'GET') {
+        return SessionManager.requireRole(['admin', 'petugas'])(req, res, () => {
+            PaymentController.getStatistics(req, res);
         });
     }
 

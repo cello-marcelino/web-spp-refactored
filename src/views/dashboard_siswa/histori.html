@@ -27,19 +27,8 @@
                         </tr>
                     </thead>
                     <tbody id="history-table-body">
-                        <!-- Data will be populated via JS in real app, but for now we mock it to show layout -->
-                        <tr>
-                            <td>2026-08-01</td>
-                            <td>Juli 2026</td>
-                            <td>Rp 500.000</td>
-                            <td><span class="badge badge-success">Success</span></td>
-                        </tr>
-                        <tr>
-                            <td>2026-08-10</td>
-                            <td>Agustus 2026</td>
-                            <td>Rp 500.000</td>
-                            <td><span class="badge badge-pending">Pending</span></td>
-                        </tr>
+                        <!-- Data will be populated via JS -->
+                        <tr><td colspan="4" style="text-align: center;">Memuat data...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -51,13 +40,39 @@
         // Render Sidebar for Siswa
         SidebarComponent.render('siswa', '/dashboard_siswa/histori.html');
         
-        // Cek URL params for alert
         const urlParams = new URLSearchParams(window.location.search);
         if(urlParams.get('msg') === 'success') {
             alert('Pembayaran berhasil disubmit. Menunggu konfirmasi admin.');
-            // Hapus param agar tidak alert terus saat di refresh
             window.history.replaceState(null, '', window.location.pathname);
         }
+
+        // Fetch Data from API
+        fetch('/api/payment/history')
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('history-table-body');
+                if (data.error) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--danger)">Error: ${data.error}</td></tr>`;
+                    return;
+                }
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Belum ada riwayat pembayaran.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = data.map(item => `
+                    <tr>
+                        <td>${item.tgl_bayar}</td>
+                        <td>${item.bulan_spp}</td>
+                        <td>Rp ${item.nominal.toLocaleString('id-ID')}</td>
+                        <td><span class="badge badge-${item.status === 'success' ? 'success' : (item.status === 'rejected' ? 'rejected' : 'pending')}">${item.status}</span></td>
+                    </tr>
+                `).join('');
+            })
+            .catch(err => {
+                document.getElementById('history-table-body').innerHTML = `<tr><td colspan="4">Gagal memuat data.</td></tr>`;
+            });
     </script>
 </body>
 </html>

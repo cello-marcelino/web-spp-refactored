@@ -17,8 +17,8 @@ class SidebarComponent {
             ];
         } else if (role === 'admin' || role === 'petugas') {
             links = [
+                { path: '/dashboard_admin/index.html', label: 'Dashboard Statistik' },
                 { path: '/dashboard_admin/histori.html', label: 'Validasi Pembayaran' }
-                // Tambahkan link Data Siswa dll nanti
             ];
         }
 
