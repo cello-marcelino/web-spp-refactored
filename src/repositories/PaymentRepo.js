@@ -98,6 +98,7 @@ class PaymentRepo {
                 total_siswa: 0,
                 total_pending: 0,
                 total_success: 0,
+                total_rejected: 0,
                 chart_data: []
             };
 
@@ -112,13 +113,15 @@ class PaymentRepo {
                     rows.forEach(r => {
                         if (r.status === 'pending') stats.total_pending = r.count;
                         if (r.status === 'success') stats.total_success = r.count;
+                        if (r.status === 'rejected') stats.total_rejected = r.count;
                     });
 
-                    // Get chart data: Ratio of Validated vs Pending per month
+                    // Get chart data: Ratio of Validated vs Pending vs Rejected per month
                     db.all(`
                         SELECT bulan_spp, 
                                SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as success_count,
-                               SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count
+                               SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
+                               SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected_count
                         FROM pembayaran 
                         GROUP BY bulan_spp
                         ORDER BY bulan_spp DESC

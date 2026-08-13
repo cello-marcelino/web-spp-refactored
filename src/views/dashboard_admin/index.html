@@ -42,6 +42,7 @@
         .icon-blue { background-color: #eff6ff; color: #3b82f6; }
         .icon-orange { background-color: #fff7ed; color: #f97316; }
         .icon-green { background-color: #f0fdf4; color: #22c55e; }
+        .icon-red { background-color: #fef2f2; color: #ef4444; }
         
         .widget-content {
             display: flex;
@@ -139,6 +140,19 @@
                         <div class="value" id="val-success">-</div>
                     </div>
                 </div>
+
+                <!-- Widget: Rejected -->
+                <div class="widget">
+                    <div class="widget-icon icon-red">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="widget-content">
+                        <h3>Pembayaran Ditolak</h3>
+                        <div class="value" id="val-rejected">-</div>
+                    </div>
+                </div>
             </div>
 
             <div class="chart-container">
@@ -164,7 +178,7 @@
         HeaderComponent.render('Dashboard Statistik');
         
         // Fetch Stats
-        fetch('/api/statistics')
+        fetch('/api/statistics', { cache: 'no-store' })
             .then(res => res.json())
             .then(data => {
                 // Animate counting up for a premium feel
@@ -185,6 +199,7 @@
                 animateCount('val-siswa', data.total_siswa);
                 animateCount('val-pending', data.total_pending);
                 animateCount('val-success', data.total_success);
+                animateCount('val-rejected', data.total_rejected || 0);
 
                 // Render Premium Chart
                 const ctx = document.getElementById('paymentChart').getContext('2d');
@@ -193,6 +208,7 @@
                 const labels = data.chart_data.map(item => item.bulan_spp).reverse();
                 const successData = data.chart_data.map(item => item.success_count).reverse();
                 const pendingData = data.chart_data.map(item => item.pending_count).reverse();
+                const rejectedData = data.chart_data.map(item => item.rejected_count).reverse();
 
                 new Chart(ctx, {
                     type: 'bar',
@@ -210,6 +226,13 @@
                                 label: ' Pending (Menunggu)',
                                 data: pendingData,
                                 backgroundColor: '#fb923c',
+                                borderRadius: 6,
+                                borderSkipped: false
+                            },
+                            {
+                                label: ' Ditolak (Rejected)',
+                                data: rejectedData,
+                                backgroundColor: '#ef4444',
                                 borderRadius: 6,
                                 borderSkipped: false
                             }
