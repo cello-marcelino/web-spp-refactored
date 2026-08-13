@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beranda - Siswa</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .jurusan-card {
+            background-color: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border-top: 4px solid var(--primary);
+            transition: transform 0.2s;
+        }
+        .jurusan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .hero-banner {
+            background: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem 2rem;
+            color: white;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-banner h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        .hero-banner p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+            max-width: 600px;
+        }
+        .hero-stat {
+            position: absolute;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            text-align: right;
+        }
+        .hero-stat .num {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .hero-stat .label {
+            font-size: 1rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Placeholder -->
+        <div id="sidebar-root"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <div class="hero-banner">
+                <h1>Selamat Datang di SPP PAY!</h1>
+                <p>Platform pembayaran SPP digital yang cepat, transparan, dan terintegrasi untuk seluruh siswa.</p>
+                <div class="hero-stat">
+                    <div class="num" id="total-siswa">-</div>
+                    <div class="label">Total Siswa Aktif</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 3rem;">
+                <h2 style="color: var(--text-main); font-size: 1.5rem;">Informasi Jurusan & Skenario Biaya SPP</h2>
+                <p style="color: var(--text-muted); margin-top: 0.5rem;">Berikut adalah daftar jurusan yang tersedia beserta tarif bulanan masing-masing.</p>
+            </div>
+
+            <div class="stat-grid" id="jurusan-container">
+                <!-- JS injected -->
+                <div style="color: var(--text-muted);">Memuat data sekolah...</div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="/js/components/sidebar.js"></script>
+    <script>
+        // Render Sidebar for Siswa
+        SidebarComponent.render('siswa', '/dashboard_siswa/index.html');
+
+        // Fetch School Stats
+        fetch('/api/stats/school')
+            .then(res => res.json())
+            .then(data => {
+                if(data && !data.error) {
+                    document.getElementById('total-siswa').innerText = data.totalSiswa || 0;
+                    
+                    const container = document.getElementById('jurusan-container');
+                    if (data.jurusanStats && data.jurusanStats.length > 0) {
+                        container.innerHTML = data.jurusanStats.map(stat => `
+                            <div class="jurusan-card">
+                                <div style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Jurusan</div>
+                                <h3 style="font-size: 1.5rem; color: var(--primary); margin: 0.25rem 0 1rem 0;">${stat.jurusan}</h3>
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.75rem; border-bottom: 1px dashed var(--border);">
+                                    <span style="color: var(--text-muted);">Total Siswa</span>
+                                    <span style="font-weight: 600; font-size: 1.1rem;">${stat.jumlah_siswa} <span style="font-size: 0.85rem; font-weight: normal; color: var(--text-muted)">Siswa</span></span>
+                                </div>
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 0.75rem;">
+                                    <span style="color: var(--text-muted);">Biaya SPP</span>
+                                    <span style="font-weight: 700; color: #15803d; font-size: 1.1rem;">Rp ${stat.nominal.toLocaleString('id-ID')} <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted)">/bln</span></span>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        container.innerHTML = '<div style="color: var(--text-muted);">Data jurusan tidak tersedia.</div>';
+                    }
+                }
+            })
+            .catch(err => {
+                console.error('Gagal mengambil data:', err);
+                document.getElementById('jurusan-container').innerHTML = '<div style="color: var(--danger);">Gagal memuat data sekolah.</div>';
+            });
+    </script>
+</body>
+</html>

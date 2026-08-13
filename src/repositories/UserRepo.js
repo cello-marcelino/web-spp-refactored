@@ -105,6 +105,29 @@ class UserRepo {
             });
         });
     }
+
+    /**
+     * Get aggregate stats for the school (Siswa landing page)
+     */
+    static getSchoolStats() {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT 
+                    t.jurusan,
+                    t.nominal,
+                    COUNT(s.id_siswa) as jumlah_siswa
+                FROM tb_tarif t
+                LEFT JOIN tb_siswa s ON t.jurusan = s.jurusan
+                GROUP BY t.jurusan
+            `;
+            db.all(query, [], (err, rows) => {
+                if (err) return reject(err);
+                let totalSiswa = 0;
+                rows.forEach(r => totalSiswa += r.jumlah_siswa);
+                resolve({ totalSiswa, jurusanStats: rows });
+            });
+        });
+    }
 }
 
 module.exports = UserRepo;

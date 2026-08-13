@@ -55,6 +55,12 @@ const server = http.createServer((req, res) => {
     // ----- USER MANAGEMENT ROUTES -----
     const UserController = require('./src/controllers/UserController');
     
+    if (pathname === '/api/stats/school' && req.method === 'GET') {
+        return SessionManager.requireRole(['siswa', 'admin', 'petugas'])(req, res, () => {
+            UserController.getSchoolStats(req, res);
+        });
+    }
+
     // CRUD Siswa (Admin & Petugas)
     if (pathname.startsWith('/api/users/siswa')) {
         return SessionManager.requireRole(['admin', 'petugas'])(req, res, () => {
@@ -87,6 +93,14 @@ const server = http.createServer((req, res) => {
     if (pathname.endsWith('.html') || pathname === '/') {
         let viewFile = pathname === '/' ? 'login.html' : pathname;
         
+        // Default views for dashboard roots
+        if (viewFile === '/dashboard_admin' || viewFile === '/dashboard_admin/') {
+            viewFile = '/dashboard_admin/index.html';
+        }
+        if (viewFile === '/dashboard_siswa' || viewFile === '/dashboard_siswa/') {
+            viewFile = '/dashboard_siswa/index.html';
+        }
+
         // Protect dashboard routes
         if (viewFile.startsWith('/dashboard')) {
             const session = SessionManager.getSession(req);

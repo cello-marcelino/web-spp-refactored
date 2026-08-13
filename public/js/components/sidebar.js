@@ -12,6 +12,7 @@ class SidebarComponent {
 
         if (role === 'siswa') {
             links = [
+                { path: '/dashboard_siswa/index.html', label: 'Beranda' },
                 { path: '/dashboard_siswa/histori.html', label: 'Riwayat Pembayaran' },
                 { path: '/dashboard_siswa/form_pembayaran.html', label: 'Bayar SPP' }
             ];

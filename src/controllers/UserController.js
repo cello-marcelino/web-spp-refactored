@@ -144,6 +144,18 @@ class UserController {
             res.end();
         }
     }
+
+    static async getSchoolStats(req, res) {
+        try {
+            const UserRepo = require('../repositories/UserRepo');
+            const stats = await UserRepo.getSchoolStats();
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(stats));
+        } catch (error) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: error.message }));
+        }
+    }
 }
 
 module.exports = UserController;
