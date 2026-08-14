@@ -19,3 +19,7 @@ Thumbs.db
 
 # Database
 database/*.db
+
+# Uploaded Receipts
+public/uploads/*
+!public/uploads/dummy_receipt.jpg
